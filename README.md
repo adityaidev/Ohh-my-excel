@@ -281,13 +281,12 @@ bandit -r excel_graph_mcp/ -c pyproject.toml    # Security scan
 
 | Feature | Status |
 |---------|--------|
-| **HyperFormula sidecar** — dual formula engine (JS + Python) | Planned |
-| **VBA analysis tools** — extract, summarize, explain VBA macros | Planned |
-| **Template expansion** — 20+ built-in templates across 6 categories | Planned |
-| **Embedding-based semantic search** — vector search via sentence-transformers | Planned |
+| **HyperFormula sidecar** — dual formula engine (JS + Python) | ✅ Done |
+| **VBA analysis tools** — extract, summarize, explain VBA macros | ✅ Done |
+| **Template expansion** — 26 built-in templates across 6 categories | ✅ Done |
+| **Embedding-based semantic search** — vector search via sentence-transformers | ✅ Done |
 | **Power Query / DAX roadmap** — financial analyst integration | Future |
 | **Excel Online / Graph API** — read from SharePoint/OneDrive | Future |
-| **Claude in Excel differentiation** — MCP-native, any-AI-client support | Ongoing |
 
 ---
 
