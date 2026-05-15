@@ -279,6 +279,62 @@ def visualize_graph_tool(file_path: str, format: str = "html", depth: int = 2) -
 
 
 @server.tool()
+def generate_workbook_tool(prompt: str, output_path: str, template: str = "", data_source: str = "", style: str = "professional") -> dict:
+    """Create Excel workbook from natural language prompt."""
+    from excel_graph_mcp.generation import generate_workbook
+    return generate_workbook(prompt, output_path, template, data_source, style)
+
+
+@server.tool()
+def generate_workbook_from_data_tool(data: str, output_path: str, sheet_name: str = "Sheet1", include_charts: bool = False, style: str = "professional") -> dict:
+    """Create workbook from provided data (JSON or CSV)."""
+    from excel_graph_mcp.generation import generate_workbook_from_data
+    return generate_workbook_from_data(data, output_path, sheet_name, include_charts, style)
+
+
+@server.tool()
+def generate_workbook_from_template_tool(template_name: str, output_path: str, customizations: str = "") -> dict:
+    """Create workbook from built-in template (expense_tracker, budget_planner, invoice)."""
+    from excel_graph_mcp.generation import generate_workbook_from_template
+    return generate_workbook_from_template(template_name, output_path, customizations)
+
+
+@server.tool()
+def add_sheet_tool(file_path: str, sheet_name: str, columns: list[dict], formulas: list[dict] = None, formatting: dict = None) -> dict:
+    """Add a new sheet to existing workbook."""
+    from excel_graph_mcp.generation import add_sheet
+    return add_sheet(file_path, sheet_name, columns, formulas, formatting)
+
+
+@server.tool()
+def add_chart_tool(file_path: str, sheet_name: str, chart_type: str, data_range: str, title: str = "") -> dict:
+    """Add chart to existing workbook."""
+    from excel_graph_mcp.generation import add_chart
+    return add_chart(file_path, sheet_name, chart_type, data_range, title)
+
+
+@server.tool()
+def apply_formatting_tool(file_path: str, style: str = "professional", auto_size: bool = True, freeze_panes: dict = None) -> dict:
+    """Apply professional formatting to workbook."""
+    from excel_graph_mcp.generation import apply_formatting
+    return apply_formatting(file_path, style, auto_size, freeze_panes)
+
+
+@server.tool()
+def generate_formulas_tool(file_path: str, sheet_name: str, column: str, formula_type: str = "sum") -> dict:
+    """Auto-generate formulas for a column based on context (sum, average, count, max, min)."""
+    from excel_graph_mcp.generation import generate_formulas
+    return generate_formulas(file_path, sheet_name, column, formula_type)
+
+
+@server.tool()
+def validate_workbook_tool(file_path: str, check_circular: bool = True, check_broken_refs: bool = True) -> dict:
+    """Validate generated workbook for errors."""
+    from excel_graph_mcp.generation import validate_workbook
+    return validate_workbook(file_path, check_circular, check_broken_refs)
+
+
+@server.tool()
 def export_graph_tool(file_path: str, format: str = "json") -> dict:
     """Export graph as JSON, CSV, or GraphML."""
     from excel_graph_mcp.exports import export_as_json, export_as_csv, export_as_graphml
