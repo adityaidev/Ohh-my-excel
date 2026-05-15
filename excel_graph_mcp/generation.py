@@ -51,18 +51,14 @@ def generate_workbook_from_data(data: str, output_path: str, sheet_name: str = "
     return {"file": str(p), "status": "created", "sheets": 1, "nodes": stats["nodes"]}
 
 
-TEMPLATES = {
-    "expense_tracker": {"sheets": [{"name": "Expenses", "columns": ["Date", "Category", "Description", "Amount"]}, {"name": "Summary", "columns": ["Category", "Total"]}]},
-    "budget_planner": {"sheets": [{"name": "Budget", "columns": ["Category", "Budgeted", "Actual", "Difference"]}]},
-    "invoice": {"sheets": [{"name": "Invoice", "columns": ["Item", "Quantity", "Unit Price", "Total"]}]},
-}
-
-
 def generate_workbook_from_template(template_name: str, output_path: str, customizations: str = "") -> dict:
     p = Path(output_path)
-    template = TEMPLATES.get(template_name)
-    if not template:
-        return {"error": f"Template '{template_name}' not found. Available: {list(TEMPLATES.keys())}"}
+    from excel_graph_mcp.templates import get_template
+    template = get_template(template_name)
+    if "error" in template:
+        from excel_graph_mcp.templates import list_templates
+        available = [t["id"] for t in list_templates()]
+        return {"error": f"Template '{template_name}' not found. Available ({len(available)}): {available}"}
     from openpyxl import Workbook
     wb = Workbook()
     for sheet_spec in template["sheets"]:

@@ -294,7 +294,7 @@ def generate_workbook_from_data_tool(data: str, output_path: str, sheet_name: st
 
 @server.tool()
 def generate_workbook_from_template_tool(template_name: str, output_path: str, customizations: str = "") -> dict:
-    """Create workbook from built-in template (expense_tracker, budget_planner, invoice)."""
+    """Create workbook from built-in template (26 templates across Finance, Sales, Project, HR, Marketing, Personal). Use list_templates_tool to browse."""
     from excel_graph_mcp.generation import generate_workbook_from_template
     return generate_workbook_from_template(template_name, output_path, customizations)
 
@@ -341,6 +341,62 @@ def export_graph_tool(file_path: str, format: str = "json") -> dict:
     exporters = {"json": export_as_json, "csv": export_as_csv, "graphml": export_as_graphml}
     exporter = exporters.get(format, export_as_json)
     return exporter(file_path)
+
+
+@server.tool()
+def evaluate_formulas_tool(formulas: dict[str, str], cells: list[str]) -> dict:
+    """Evaluate Excel formulas using HyperFormula (JS) or formulas (Python) fallback."""
+    from excel_graph_mcp.hyperformula_bridge import evaluate_formulas
+    return evaluate_formulas(formulas, cells)
+
+
+@server.tool()
+def analyze_vba_tool(file_path: str) -> dict:
+    """Extract and analyze VBA macros from an .xlsm file."""
+    from excel_graph_mcp.vba_analysis import analyze_vba
+    return analyze_vba(file_path)
+
+
+@server.tool()
+def explain_vba_tool(file_path: str, module_name: str = "") -> dict:
+    """Explain VBA macros in plain English — what each module does."""
+    from excel_graph_mcp.vba_analysis import explain_vba
+    return explain_vba(file_path, module_name)
+
+
+@server.tool()
+def list_templates_tool(category: str = "") -> list[dict]:
+    """List available workbook templates (20+ across Finance, Sales, Project, HR, Marketing, Personal)."""
+    from excel_graph_mcp.templates import list_templates
+    return list_templates(category)
+
+
+@server.tool()
+def get_template_tool(template_name: str) -> dict:
+    """Get detailed structure of a specific template."""
+    from excel_graph_mcp.templates import get_template
+    return get_template(template_name)
+
+
+@server.tool()
+def get_template_categories_tool() -> list[dict]:
+    """List template categories with counts."""
+    from excel_graph_mcp.templates import get_template_categories
+    return get_template_categories()
+
+
+@server.tool()
+def build_embeddings_tool(file_path: str) -> dict:
+    """Compute vector embeddings for the graph to enable semantic search."""
+    from excel_graph_mcp.embeddings import build_embeddings
+    return build_embeddings(file_path)
+
+
+@server.tool()
+def semantic_search_vector_tool(file_path: str, query: str, limit: int = 20) -> dict:
+    """Semantic vector search across workbook nodes (requires embeddings built first)."""
+    from excel_graph_mcp.embeddings import semantic_search_vector
+    return semantic_search_vector(file_path, query, limit)
 
 
 def _resolve(file_path: str) -> Path:
