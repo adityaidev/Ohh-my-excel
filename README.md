@@ -5,7 +5,8 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/ohh-my-excel/"><img src="https://img.shields.io/pypi/v/ohh-my-excel?style=flat-square&color=blue" alt="PyPI"></a>
+  <a href="https://github.com/adityaidev/Ohh-my-excel/releases"><img src="https://img.shields.io/github/v/release/adityaidev/Ohh-my-excel?style=flat-square&color=blue&include_prereleases" alt="GitHub Release"></a>
+  <a href="https://pypi.org/project/ohh-my-excel/"><img src="https://img.shields.io/pypi/v/ohh-my-excel?style=flat-square&color=blue&label=PyPI" alt="PyPI"></a>
   <a href="https://github.com/adityaidev/Ohh-my-excel/stargazers"><img src="https://img.shields.io/github/stars/adityaidev/Ohh-my-excel?style=flat-square" alt="Stars"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="MIT Licence"></a>
   <a href="https://github.com/adityaidev/Ohh-my-excel/actions/workflows/ci.yml"><img src="https://github.com/adityaidev/Ohh-my-excel/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
