@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Final
 
 APP_NAME: Final = "ohh-my-excel"
-VERSION: Final = "0.1.0"
+VERSION: Final = "0.2.0"
 GRAPH_DIR: Final = ".excel-graph"
 DB_FILENAME: Final = "graph.db"
 BACKUP_DIR: Final = "backups"
