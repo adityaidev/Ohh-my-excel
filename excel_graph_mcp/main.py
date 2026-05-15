@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 
 from fastmcp import FastMCP
 
@@ -8,85 +7,55 @@ from excel_graph_mcp.tools.build import build_or_update_graph, run_postprocess, 
 from excel_graph_mcp.tools.query import query_graph, traverse_graph, semantic_search
 from excel_graph_mcp.tools.context import get_minimal_context
 
-server = FastMCP(
-    APP_NAME,
-    version=VERSION,
-)
+server = FastMCP(APP_NAME, version=VERSION)
 
 
 @server.tool()
-def build_or_update_graph_tool(
-    file_path: str,
-    full_rebuild: bool = False,
-    detail_level: str = "standard",
-) -> dict:
-    """Build or incrementally update the Excel knowledge graph for a workbook.
-    Returns node/edge counts and per-type breakdown."""
+def build_or_update_graph_tool(file_path: str, full_rebuild: bool = False, detail_level: str = "standard") -> dict:
+    """Build or incrementally update the Excel knowledge graph."""
     return build_or_update_graph(file_path, full_rebuild, detail_level)
 
 
 @server.tool()
-def run_postprocess_tool(
-    file_path: str,
-    flows: bool = True,
-    communities: bool = True,
-    fts: bool = True,
-) -> dict:
-    """Run post-processing on the graph: flow detection, community detection, FTS indexing."""
-    from excel_graph_mcp.tools.build import run_postprocess as _rp
-    return _rp(file_path, flows, communities, fts)
+def run_postprocess_tool(file_path: str, flows: bool = True, communities: bool = True, fts: bool = True) -> dict:
+    """Run post-processing: flow detection, community detection, FTS indexing."""
+    return run_postprocess(file_path, flows, communities, fts)
 
 
 @server.tool()
 def list_graph_stats_tool(file_path: str) -> dict:
-    """Get aggregate statistics about the knowledge graph for a workbook."""
+    """Get aggregate statistics about the knowledge graph."""
     return list_graph_stats(file_path)
 
 
 @server.tool()
 def get_minimal_context_tool(file_path: str, task: str = "") -> dict:
-    """Ultra-compact ~100 token summary of a workbook with next-tool suggestions."""
+    """Ultra-compact ~100 token summary with next-tool suggestions."""
     return get_minimal_context(file_path, task)
 
 
 @server.tool()
-def semantic_search_nodes_tool(
-    file_path: str,
-    query: str,
-    kind: str = "",
-    limit: int = 20,
-) -> dict:
-    """Search for sheets, cells, tables, or formulas by name or keyword."""
+def semantic_search_nodes_tool(file_path: str, query: str, kind: str = "", limit: int = 20) -> dict:
+    """Search for sheets, cells, tables, or formulas by keyword."""
     return semantic_search(file_path, query, kind, limit)
 
 
 @server.tool()
-def query_graph_tool(
-    file_path: str,
-    pattern: str,
-    target: str,
-    detail_level: str = "standard",
-) -> dict:
-    """Query the graph with predefined patterns: precedents_of, dependents_of, cross_sheet_refs, contains."""
+def query_graph_tool(file_path: str, pattern: str, target: str, detail_level: str = "standard") -> dict:
+    """Query graph: precedents_of, dependents_of, cross_sheet_refs, contains."""
     return query_graph(file_path, pattern, target, detail_level)
 
 
 @server.tool()
-def traverse_graph_tool(
-    file_path: str,
-    query: str,
-    mode: str = "bfs",
-    depth: int = 2,
-    token_budget: int = 2000,
-) -> dict:
-    """BFS/DFS traversal from any cell or sheet with a token budget."""
+def traverse_graph_tool(file_path: str, query: str, mode: str = "bfs", depth: int = 2, token_budget: int = 2000) -> dict:
+    """BFS/DFS traversal from any cell/sheet with token budget."""
     return traverse_graph(file_path, query, mode, depth, token_budget)
 
 
 @server.tool()
 def get_impact_radius_tool(file_path: str, cell_ref: str, max_depth: int = 2) -> dict:
-    """Blast radius analysis — which cells/formulas are affected when a cell changes."""
-    p = validate_path(file_path)
+    """Blast radius analysis — find all cells/formulas affected when a cell changes."""
+    p = _resolve(file_path)
     from excel_graph_mcp.graph import GraphStore
     store = GraphStore(p)
     results = store.bfs(f"cell:{cell_ref}", max_depth=max_depth, direction="incoming")
@@ -95,9 +64,38 @@ def get_impact_radius_tool(file_path: str, cell_ref: str, max_depth: int = 2) ->
 
 
 @server.tool()
+def detect_changes_tool(old_file: str, new_file: str, detail_level: str = "standard") -> dict:
+    """Risk-scored change analysis between two workbook versions."""
+    from excel_graph_mcp.changes import ChangeAnalyzer
+    from excel_graph_mcp.graph import GraphStore
+    from excel_graph_mcp.dependency import build_dependency_graph
+    build_dependency_graph(_resolve(old_file))
+    build_dependency_graph(_resolve(new_file))
+    old_store = GraphStore(_resolve(old_file))
+    new_store = GraphStore(_resolve(new_file))
+    analyzer = ChangeAnalyzer(old_store, new_store)
+    result = analyzer.detect_changes()
+    old_store.close()
+    new_store.close()
+    return result
+
+
+@server.tool()
+def get_affected_flows_tool(file_path: str, cell_ref: str) -> dict:
+    """Which data flows are impacted by a cell change."""
+    from excel_graph_mcp.graph import GraphStore
+    from excel_graph_mcp.flows import FlowDetector
+    store = GraphStore(_resolve(file_path))
+    detector = FlowDetector(store)
+    result = detector.get_affected_flows(cell_ref)
+    store.close()
+    return {"cell_ref": cell_ref, "impacted_flows": result}
+
+
+@server.tool()
 def get_formula_dependencies_tool(file_path: str, cell_ref: str, include_ranges: bool = True) -> dict:
     """Get all precedent cells a formula depends on."""
-    p = validate_path(file_path)
+    p = _resolve(file_path)
     from excel_graph_mcp.graph import GraphStore
     store = GraphStore(p)
     result = store.bfs(f"formula:{cell_ref}", max_depth=1, direction="outgoing")
@@ -106,10 +104,16 @@ def get_formula_dependencies_tool(file_path: str, cell_ref: str, include_ranges:
 
 
 @server.tool()
+def get_formula_dependents_tool(file_path: str, cell_ref: str) -> dict:
+    """Get all cells that depend on a given cell."""
+    from excel_graph_mcp.analysis import get_formula_dependents
+    return get_formula_dependents(file_path, cell_ref)
+
+
+@server.tool()
 def find_circular_references_tool(file_path: str) -> dict:
-    """Detect circular formula dependencies in the workbook."""
-    p = validate_path(file_path)
-    from excel_graph_mcp.dependency import DependencyBuilder
+    """Detect circular formula dependencies."""
+    p = _resolve(file_path)
     from excel_graph_mcp.graph import GraphStore
     store = GraphStore(p)
     G = store.to_networkx()
@@ -124,21 +128,32 @@ def find_circular_references_tool(file_path: str) -> dict:
 
 
 @server.tool()
+def find_broken_references_tool(file_path: str) -> dict:
+    """Find formulas referencing deleted or missing cells."""
+    from excel_graph_mcp.analysis import find_broken_references
+    return {"broken_references": find_broken_references(file_path)}
+
+
+@server.tool()
+def get_formula_complexity_tool(file_path: str, cell_ref: str) -> dict:
+    """Analyze formula complexity: nesting depth, function count, cell count."""
+    from excel_graph_mcp.analysis import get_formula_complexity
+    return get_formula_complexity(file_path, cell_ref)
+
+
+@server.tool()
 def list_sheets_tool(file_path: str) -> dict:
-    """List all sheets in a workbook with metadata."""
-    p = validate_path(file_path)
-    from excel_graph_mcp.graph import GraphStore
-    store = GraphStore(p)
+    """List all sheets with metadata (cell count, formula count)."""
+    p = _resolve(file_path)
     from excel_graph_mcp.parser import ParsedWorkbook
     wb = ParsedWorkbook(p)
-    store.close()
     return {"sheets": [s.to_dict() for s in wb.sheets]}
 
 
 @server.tool()
 def get_sheet_info_tool(file_path: str, sheet_name: str) -> dict:
-    """Get detailed info about a specific sheet."""
-    p = validate_path(file_path)
+    """Detailed info about a specific sheet."""
+    p = _resolve(file_path)
     from excel_graph_mcp.parser import ParsedWorkbook
     wb = ParsedWorkbook(p)
     for s in wb.sheets:
@@ -148,9 +163,16 @@ def get_sheet_info_tool(file_path: str, sheet_name: str) -> dict:
 
 
 @server.tool()
+def find_cross_sheet_references_tool(file_path: str) -> dict:
+    """Find all cross-sheet formula references."""
+    from excel_graph_mcp.analysis import find_cross_sheet_references
+    return {"cross_sheet_references": find_cross_sheet_references(file_path)}
+
+
+@server.tool()
 def list_tables_tool(file_path: str) -> dict:
-    """List all Excel tables with their ranges and columns."""
-    p = validate_path(file_path)
+    """List all Excel tables with ranges and columns."""
+    p = _resolve(file_path)
     from excel_graph_mcp.parser import ParsedWorkbook
     wb = ParsedWorkbook(p)
     tables = []
@@ -163,45 +185,125 @@ def list_tables_tool(file_path: str) -> dict:
 @server.tool()
 def list_named_ranges_tool(file_path: str) -> dict:
     """List all named ranges and their definitions."""
-    p = validate_path(file_path)
+    p = _resolve(file_path)
     from excel_graph_mcp.parser import ParsedWorkbook
     wb = ParsedWorkbook(p)
     return {"named_ranges": wb.named_ranges}
 
 
-def validate_path(file_path: str) -> Path:
+@server.tool()
+def list_flows_tool(file_path: str, sort_by: str = "criticality", limit: int = 50) -> dict:
+    """List data flows (input -> calculation -> output chains)."""
+    from excel_graph_mcp.graph import GraphStore
+    from excel_graph_mcp.flows import FlowDetector
+    store = GraphStore(_resolve(file_path))
+    detector = FlowDetector(store)
+    flows = detector.detect_flows()
+    store.close()
+    return {"flows": flows[:limit]}
+
+
+@server.tool()
+def get_flow_tool(file_path: str, flow_id: str = "", flow_name: str = "") -> dict:
+    """Details of a specific data flow."""
+    from excel_graph_mcp.graph import GraphStore
+    from excel_graph_mcp.flows import FlowDetector
+    store = GraphStore(_resolve(file_path))
+    detector = FlowDetector(store)
+    flows = detector.detect_flows()
+    store.close()
+    for flow in flows:
+        if flow["sheet"] == flow_name or flow_id in str(flow):
+            return flow
+    return {"error": "Flow not found"}
+
+
+@server.tool()
+def get_architecture_overview_tool(file_path: str) -> dict:
+    """High-level workbook architecture from sheet communities."""
+    from excel_graph_mcp.graph import GraphStore
+    from excel_graph_mcp.communities import CommunityDetector
+    store = GraphStore(_resolve(file_path))
+    detector = CommunityDetector(store)
+    result = detector.get_architecture_overview()
+    store.close()
+    return result
+
+
+@server.tool()
+def list_communities_tool(file_path: str, sort_by: str = "size") -> dict:
+    """List detected sheet communities (grouped by cross-refs)."""
+    from excel_graph_mcp.graph import GraphStore
+    from excel_graph_mcp.communities import CommunityDetector
+    store = GraphStore(_resolve(file_path))
+    detector = CommunityDetector(store)
+    communities = detector.detect_communities()
+    store.close()
+    communities.sort(key=lambda c: c[sort_by], reverse=True)
+    return {"communities": communities}
+
+
+@server.tool()
+def get_hub_cells_tool(file_path: str, top_n: int = 10) -> dict:
+    """Most-referenced cells (architectural hotspots)."""
+    from excel_graph_mcp.analysis import get_hub_cells
+    return {"hub_cells": get_hub_cells(file_path, top_n)}
+
+
+@server.tool()
+def get_bridge_cells_tool(file_path: str, top_n: int = 10) -> dict:
+    """Cells connecting different sheet communities."""
+    from excel_graph_mcp.analysis import get_bridge_cells
+    return {"bridge_cells": get_bridge_cells(file_path, top_n)}
+
+
+@server.tool()
+def get_knowledge_gaps_tool(file_path: str) -> dict:
+    """Structural weaknesses: orphan sheets, untested calculations."""
+    from excel_graph_mcp.analysis import get_knowledge_gaps
+    return get_knowledge_gaps(file_path)
+
+
+@server.tool()
+def get_suggested_questions_tool(file_path: str) -> dict:
+    """Auto-generated audit questions from graph analysis."""
+    from excel_graph_mcp.analysis import get_suggested_questions
+    return {"questions": get_suggested_questions(file_path)}
+
+
+def _resolve(file_path: str) -> Path:
     from excel_graph_mcp.tools._common import validate_file_path
     return validate_file_path(file_path)
 
 
 @server.prompt()
 def audit_workbook(file_path: str) -> str:
-    """Comprehensive workbook audit prompt."""
-    return f"I need you to perform a comprehensive audit of the workbook at {file_path}. Use the Ohh-my-excel tools to build the graph, check for issues, and provide a full risk assessment."
+    """Comprehensive workbook audit."""
+    return f"Audit the workbook at {file_path} using Ohh-my-excel tools. Build the graph, check for issues, provide risk assessment."
 
 
 @server.prompt()
 def debug_formula(file_path: str, cell_ref: str) -> str:
-    """Guided formula debugging workflow."""
-    return f"I need help debugging the formula in {cell_ref} in the workbook at {file_path}. Please trace its dependencies and check for errors."
+    """Guided formula debugging."""
+    return f"Debug formula at {cell_ref} in {file_path}. Trace dependencies and check for errors."
 
 
 @server.prompt()
 def data_flow_map(file_path: str) -> str:
     """Document data flows with diagrams."""
-    return f"Map out the data flows in the workbook at {file_path}. Identify input sheets, calculation sheets, and output sheets."
+    return f"Map data flows in {file_path}. Identify input, calculation, and output sheets."
 
 
 @server.prompt()
 def onboard_analyst(file_path: str) -> str:
-    """New analyst orientation to workbook structure."""
-    return f"I'm a new analyst. Please orient me to the workbook at {file_path}. Explain its structure, key sheets, and important formulas."
+    """New analyst orientation."""
+    return f"Orient me to {file_path}. Explain structure, key sheets, and important formulas."
 
 
 @server.prompt()
 def pre_merge_check(file_path: str) -> str:
-    """Workbook change readiness check."""
-    return f"Perform a pre-merge check on the workbook at {file_path}. Check for broken refs, circular dependencies, and risk areas."
+    """Pre-merge change readiness check."""
+    return f"Pre-merge check on {file_path}. Check broken refs, circular deps, and risk areas."
 
 
 def serve(host: str = "localhost", port: int = 8080, transport: str = "stdio"):
