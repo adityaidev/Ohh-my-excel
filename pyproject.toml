@@ -1,0 +1,74 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ohh-my-excel"
+version = "0.1.0"
+description = "Persistent, incrementally-updated knowledge graph for Excel workbooks — safe, fast, token-efficient MCP server"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "adityaidev" },
+]
+keywords = ["excel", "knowledge-graph", "mcp", "formula-analysis", "spreadsheet"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Spreadsheet",
+]
+
+dependencies = [
+    "mcp>=1.0.0,<2",
+    "fastmcp>=3.2.4",
+    "openpyxl>=3.1.2",
+    "networkx>=3.2,<4",
+    "watchdog>=4.0.0,<6",
+]
+
+[project.urls]
+Homepage = "https://github.com/adityaidev/Ohh-my-excel"
+Repository = "https://github.com/adityaidev/Ohh-my-excel"
+
+[project.scripts]
+ohh-my-excel = "excel_graph_mcp.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0,<9",
+    "pytest-asyncio>=0.23,<1",
+    "pytest-cov>=4.0,<8",
+    "ruff>=0.3.0,<1",
+]
+embeddings = [
+    "sentence-transformers>=3.0.0,<4",
+]
+visualization = [
+    "pyvis>=0.3.2",
+    "plotly>=5.18.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["excel_graph_mcp"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+
+[tool.bandit]
+skips = ["B101", "B404", "B603", "B607", "B608"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
