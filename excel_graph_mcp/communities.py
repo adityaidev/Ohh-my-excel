@@ -1,5 +1,5 @@
+
 from excel_graph_mcp.graph import GraphStore
-import networkx as nx
 
 
 class CommunityDetector:
@@ -11,7 +11,7 @@ class CommunityDetector:
         sheets = [n for n, d in self.G.nodes(data=True) if d.get("type") == "Sheet"]
         communities = {}
         for sheet in sheets:
-            cross_refs = self._count_cross_refs(sheet)
+            self._count_cross_refs(sheet)
             assigned = False
             for comm_id in communities:
                 if any(self._are_connected(sheet, m) for m in communities[comm_id]):

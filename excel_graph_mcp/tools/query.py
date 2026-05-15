@@ -1,5 +1,5 @@
 from excel_graph_mcp.graph import GraphStore
-from excel_graph_mcp.tools._common import validate_file_path, format_result
+from excel_graph_mcp.tools._common import format_result, validate_file_path
 
 
 def query_graph(file_path: str, pattern: str, target: str, detail_level: str = "standard") -> dict:

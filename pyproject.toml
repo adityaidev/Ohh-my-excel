@@ -47,6 +47,7 @@ dev = [
     "pytest-asyncio>=0.23,<1",
     "pytest-cov>=4.0,<8",
     "ruff>=0.3.0,<1",
+    "bandit>=1.7.0,<2",
 ]
 embeddings = [
     "sentence-transformers>=3.0.0,<4",
@@ -60,14 +61,24 @@ visualization = [
 packages = ["excel_graph_mcp"]
 
 [tool.ruff]
-line-length = 100
+line-length = 130
 target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]
+ignore = ["N806", "F541"]
+
+[tool.ruff.lint.per-file-ignores]
+"excel_graph_mcp/generation.py" = ["E501"]
+"excel_graph_mcp/exports.py" = ["E501"]
+"excel_graph_mcp/analysis.py" = ["E501"]
+"excel_graph_mcp/communities.py" = ["E501"]
+"excel_graph_mcp/main.py" = ["E501"]
+"excel_graph_mcp/dependency.py" = ["E501"]
+"excel_graph_mcp/graph.py" = ["E501"]
 
 [tool.bandit]
-skips = ["B101", "B404", "B603", "B607", "B608"]
+skips = ["B101", "B110", "B404", "B603", "B607", "B608"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

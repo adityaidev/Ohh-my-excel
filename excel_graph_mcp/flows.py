@@ -1,5 +1,6 @@
-from excel_graph_mcp.graph import GraphStore
 import networkx as nx
+
+from excel_graph_mcp.graph import GraphStore
 
 
 class FlowDetector:

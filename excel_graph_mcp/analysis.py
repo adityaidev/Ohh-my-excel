@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import networkx as nx
 
 from excel_graph_mcp.graph import GraphStore

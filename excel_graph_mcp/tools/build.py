@@ -1,9 +1,7 @@
-from pathlib import Path
-from typing import Optional
 
 from excel_graph_mcp.dependency import build_dependency_graph
 from excel_graph_mcp.graph import GraphStore
-from excel_graph_mcp.tools._common import validate_file_path, format_result
+from excel_graph_mcp.tools._common import format_result, validate_file_path
 
 
 def build_or_update_graph(file_path: str, full_rebuild: bool = False, detail_level: str = "standard") -> dict:

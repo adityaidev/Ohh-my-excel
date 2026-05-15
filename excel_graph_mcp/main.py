@@ -2,10 +2,10 @@ from pathlib import Path
 
 from fastmcp import FastMCP
 
-from excel_graph_mcp.constants import VERSION, APP_NAME
-from excel_graph_mcp.tools.build import build_or_update_graph, run_postprocess, list_graph_stats
-from excel_graph_mcp.tools.query import query_graph, traverse_graph, semantic_search
+from excel_graph_mcp.constants import APP_NAME, VERSION
+from excel_graph_mcp.tools.build import build_or_update_graph, list_graph_stats, run_postprocess
 from excel_graph_mcp.tools.context import get_minimal_context
+from excel_graph_mcp.tools.query import query_graph, semantic_search, traverse_graph
 
 server = FastMCP(APP_NAME, version=VERSION)
 
@@ -67,8 +67,8 @@ def get_impact_radius_tool(file_path: str, cell_ref: str, max_depth: int = 2) ->
 def detect_changes_tool(old_file: str, new_file: str, detail_level: str = "standard") -> dict:
     """Risk-scored change analysis between two workbook versions."""
     from excel_graph_mcp.changes import ChangeAnalyzer
-    from excel_graph_mcp.graph import GraphStore
     from excel_graph_mcp.dependency import build_dependency_graph
+    from excel_graph_mcp.graph import GraphStore
     build_dependency_graph(_resolve(old_file))
     build_dependency_graph(_resolve(new_file))
     old_store = GraphStore(_resolve(old_file))
@@ -83,8 +83,8 @@ def detect_changes_tool(old_file: str, new_file: str, detail_level: str = "stand
 @server.tool()
 def get_affected_flows_tool(file_path: str, cell_ref: str) -> dict:
     """Which data flows are impacted by a cell change."""
-    from excel_graph_mcp.graph import GraphStore
     from excel_graph_mcp.flows import FlowDetector
+    from excel_graph_mcp.graph import GraphStore
     store = GraphStore(_resolve(file_path))
     detector = FlowDetector(store)
     result = detector.get_affected_flows(cell_ref)
@@ -194,8 +194,8 @@ def list_named_ranges_tool(file_path: str) -> dict:
 @server.tool()
 def list_flows_tool(file_path: str, sort_by: str = "criticality", limit: int = 50) -> dict:
     """List data flows (input -> calculation -> output chains)."""
-    from excel_graph_mcp.graph import GraphStore
     from excel_graph_mcp.flows import FlowDetector
+    from excel_graph_mcp.graph import GraphStore
     store = GraphStore(_resolve(file_path))
     detector = FlowDetector(store)
     flows = detector.detect_flows()
@@ -206,8 +206,8 @@ def list_flows_tool(file_path: str, sort_by: str = "criticality", limit: int = 5
 @server.tool()
 def get_flow_tool(file_path: str, flow_id: str = "", flow_name: str = "") -> dict:
     """Details of a specific data flow."""
-    from excel_graph_mcp.graph import GraphStore
     from excel_graph_mcp.flows import FlowDetector
+    from excel_graph_mcp.graph import GraphStore
     store = GraphStore(_resolve(file_path))
     detector = FlowDetector(store)
     flows = detector.detect_flows()
@@ -221,8 +221,8 @@ def get_flow_tool(file_path: str, flow_id: str = "", flow_name: str = "") -> dic
 @server.tool()
 def get_architecture_overview_tool(file_path: str) -> dict:
     """High-level workbook architecture from sheet communities."""
-    from excel_graph_mcp.graph import GraphStore
     from excel_graph_mcp.communities import CommunityDetector
+    from excel_graph_mcp.graph import GraphStore
     store = GraphStore(_resolve(file_path))
     detector = CommunityDetector(store)
     result = detector.get_architecture_overview()
@@ -233,8 +233,8 @@ def get_architecture_overview_tool(file_path: str) -> dict:
 @server.tool()
 def list_communities_tool(file_path: str, sort_by: str = "size") -> dict:
     """List detected sheet communities (grouped by cross-refs)."""
-    from excel_graph_mcp.graph import GraphStore
     from excel_graph_mcp.communities import CommunityDetector
+    from excel_graph_mcp.graph import GraphStore
     store = GraphStore(_resolve(file_path))
     detector = CommunityDetector(store)
     communities = detector.detect_communities()
@@ -337,7 +337,7 @@ def validate_workbook_tool(file_path: str, check_circular: bool = True, check_br
 @server.tool()
 def export_graph_tool(file_path: str, format: str = "json") -> dict:
     """Export graph as JSON, CSV, or GraphML."""
-    from excel_graph_mcp.exports import export_as_json, export_as_csv, export_as_graphml
+    from excel_graph_mcp.exports import export_as_csv, export_as_graphml, export_as_json
     exporters = {"json": export_as_json, "csv": export_as_csv, "graphml": export_as_graphml}
     exporter = exporters.get(format, export_as_json)
     return exporter(file_path)

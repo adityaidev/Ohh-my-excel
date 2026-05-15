@@ -1,8 +1,7 @@
-from pathlib import Path
 import hashlib
 import json
+from pathlib import Path
 
-from excel_graph_mcp.graph import GraphStore
 from excel_graph_mcp.constants import get_graph_dir
 
 

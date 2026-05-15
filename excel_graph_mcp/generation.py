@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 
 
 def generate_workbook(prompt: str, output_path: str, template: str = "", data_source: str = "", style: str = "professional") -> dict:
@@ -20,7 +19,10 @@ def generate_workbook(prompt: str, output_path: str, template: str = "", data_so
 
 def generate_workbook_from_data(data: str, output_path: str, sheet_name: str = "Sheet1", include_charts: bool = False, style: str = "professional") -> dict:
     p = Path(output_path)
-    import json, csv, io
+    import csv
+    import io
+    import json
+
     from openpyxl import Workbook
     wb = Workbook()
     ws = wb.active
@@ -90,7 +92,7 @@ def add_sheet(file_path: str, sheet_name: str, columns: list[dict], formulas: li
 
 def add_chart(file_path: str, sheet_name: str, chart_type: str, data_range: str, title: str = "") -> dict:
     from openpyxl import load_workbook
-    from openpyxl.chart import BarChart, LineChart, PieChart, Reference
+    from openpyxl.chart import BarChart, LineChart, PieChart
     wb = load_workbook(file_path)
     ws = wb[sheet_name]
     chart_map = {"bar": BarChart, "line": LineChart, "pie": PieChart}
@@ -104,7 +106,7 @@ def add_chart(file_path: str, sheet_name: str, chart_type: str, data_range: str,
 
 def apply_formatting(file_path: str, style: str = "professional", auto_size: bool = True, freeze_panes: dict = None) -> dict:
     from openpyxl import load_workbook
-    from openpyxl.styles import Font, PatternFill, Alignment
+    from openpyxl.styles import Font, PatternFill
     wb = load_workbook(file_path)
     for ws in wb.worksheets:
         for row in ws.iter_rows(min_row=1, max_row=1):
@@ -139,7 +141,6 @@ def generate_formulas(file_path: str, sheet_name: str, column: str, formula_type
 
 
 def validate_workbook(file_path: str, check_circular: bool = True, check_broken_refs: bool = True) -> dict:
-    from excel_graph_mcp.graph import GraphStore
     from excel_graph_mcp.dependency import build_dependency_graph
     store, builder = build_dependency_graph(Path(file_path))
     issues = []

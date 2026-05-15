@@ -1,5 +1,5 @@
 from excel_graph_mcp.graph import GraphStore
-from excel_graph_mcp.tools._common import validate_file_path, next_tool_suggestions
+from excel_graph_mcp.tools._common import next_tool_suggestions, validate_file_path
 
 
 def get_minimal_context(file_path: str, task: str = "") -> dict:

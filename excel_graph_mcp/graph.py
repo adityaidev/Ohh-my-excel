@@ -35,7 +35,7 @@ class GraphStore:
 
     def _init_db(self):
         conn = self._conn()
-        conn.executescript(f"""
+        conn.executescript("""
             CREATE TABLE IF NOT EXISTS meta (
                 key TEXT PRIMARY KEY,
                 value TEXT

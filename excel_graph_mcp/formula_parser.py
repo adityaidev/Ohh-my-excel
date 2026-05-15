@@ -4,7 +4,7 @@ from typing import Optional
 from formulas import Parser as FormulaParser
 
 CELL_REF_RE = re.compile(
-    r"(?:(?P<sheet>(?:'[^']+')|[^!]+)!)?"  
+    r"(?:(?P<sheet>(?:'[^']+')|[^!]+)!)?"
     r"(?P<range>\$?[A-Z]+\$?\d+(?::\$?[A-Z]+\$?\d+)?)"
 )
 FUNC_RE = re.compile(r"([A-Za-z_]\w*)\(")
