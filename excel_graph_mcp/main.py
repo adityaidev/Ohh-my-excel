@@ -271,6 +271,22 @@ def get_suggested_questions_tool(file_path: str) -> dict:
     return {"questions": get_suggested_questions(file_path)}
 
 
+@server.tool()
+def visualize_graph_tool(file_path: str, format: str = "html", depth: int = 2) -> dict:
+    """Generate interactive HTML graph visualization."""
+    from excel_graph_mcp.exports import visualize_graph
+    return visualize_graph(file_path, depth)
+
+
+@server.tool()
+def export_graph_tool(file_path: str, format: str = "json") -> dict:
+    """Export graph as JSON, CSV, or GraphML."""
+    from excel_graph_mcp.exports import export_as_json, export_as_csv, export_as_graphml
+    exporters = {"json": export_as_json, "csv": export_as_csv, "graphml": export_as_graphml}
+    exporter = exporters.get(format, export_as_json)
+    return exporter(file_path)
+
+
 def _resolve(file_path: str) -> Path:
     from excel_graph_mcp.tools._common import validate_file_path
     return validate_file_path(file_path)
